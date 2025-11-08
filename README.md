@@ -138,6 +138,54 @@ The pipeline automatically:
 - Port 5000 to be available
 - Newman installed (automatically installed via npm)
 
+### 5. Email Notifications
+
+The pipeline automatically sends email notifications to **groklord@yahoo.com** for:
+
+- **❌ Failures**: When the pipeline fails (includes build log attachment)
+- **⚠️ Warnings/Unstable**: When the pipeline completes with warnings
+- **🛑 Aborted**: When the pipeline is manually aborted
+
+#### Email Notification Features
+
+- **HTML formatted emails** with build details
+- **Build information**: Job name, build number, branch, commit
+- **Direct links** to build console and build page
+- **Attached logs** for failures (compressed)
+- **Status indicators** with color coding
+
+#### Jenkins Email Configuration
+
+To enable email notifications, ensure:
+
+1. **Email Extension Plugin** is installed:
+   - Go to: Jenkins > Manage Jenkins > Manage Plugins
+   - Install: "Email Extension Plugin"
+
+2. **SMTP Server Configuration**:
+   - Go to: Jenkins > Manage Jenkins > Configure System
+   - Under "Extended E-mail Notification", configure:
+     - SMTP server (e.g., `smtp.gmail.com` for Gmail, `smtp.mail.yahoo.com` for Yahoo)
+     - SMTP Port (usually 587 for TLS or 465 for SSL)
+     - Use SSL/TLS as appropriate
+     - Default user e-mail suffix (optional)
+
+3. **Email Recipient**:
+   - Currently configured: `groklord@yahoo.com`
+   - Can be changed in Jenkinsfile `EMAIL_RECIPIENT` environment variable
+
+#### Customizing Email Recipient
+
+To change the email recipient, edit the `EMAIL_RECIPIENT` variable in the Jenkinsfile:
+
+```groovy
+environment {
+    EMAIL_RECIPIENT = 'your-email@example.com'
+}
+```
+
+Or set it as a Jenkins environment variable or build parameter.
+
 ## 🌐 Render.com Deployment
 
 ### Option 1: Using render.yaml (Recommended)
@@ -379,6 +427,21 @@ Configure quality gates in SonarQube to enforce code quality standards:
 - Ensure Node.js is installed on Jenkins server
 - Check Jenkins workspace permissions
 - Verify Git credentials are configured
+
+### Email Notification Issues
+
+- **Emails not sending**: 
+  - Verify Email Extension Plugin is installed
+  - Check SMTP server configuration in Jenkins system settings
+  - Verify SMTP server credentials and port settings
+  - Check Jenkins logs for email-related errors
+- **Emails going to spam**: 
+  - Configure SPF/DKIM records for your Jenkins server domain
+  - Use authenticated SMTP (username/password)
+  - Consider using a dedicated email service (SendGrid, Mailgun, etc.)
+- **Wrong recipient**: 
+  - Check `EMAIL_RECIPIENT` environment variable in Jenkinsfile
+  - Verify it's set correctly in Jenkins job configuration
 
 ### SonarQube Issues
 

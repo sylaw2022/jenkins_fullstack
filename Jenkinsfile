@@ -5,6 +5,8 @@ pipeline {
         NODE_VERSION = '18'
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
+        // Email notification recipient
+        EMAIL_RECIPIENT = 'groklord@yahoo.com'
         // SonarQube configuration - set these in Jenkins credentials or environment
         // SONAR_HOST_URL = credentials('sonar-host-url')
         // SONAR_TOKEN = credentials('sonar-token')
@@ -200,6 +202,81 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed! ❌'
+            script {
+                // Send email notification on failure
+                emailext (
+                    subject: "❌ Jenkins Pipeline FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                    body: """
+                        <h2>Pipeline Build Failed</h2>
+                        <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                        <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                        <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                        <p><strong>Status:</strong> <span style="color: red;">FAILED ❌</span></p>
+                        <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                        <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                        <hr>
+                        <h3>Build Console Output</h3>
+                        <p>Check the build console for detailed error information.</p>
+                        <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                        <hr>
+                        <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                    """,
+                    to: "${env.EMAIL_RECIPIENT}",
+                    mimeType: 'text/html',
+                    attachLog: true,
+                    compressLog: true
+                )
+            }
+        }
+        unstable {
+            echo 'Pipeline completed with warnings! ⚠️'
+            script {
+                // Send email notification on warnings/unstable
+                emailext (
+                    subject: "⚠️ Jenkins Pipeline UNSTABLE: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                    body: """
+                        <h2>Pipeline Build Completed with Warnings</h2>
+                        <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                        <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                        <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                        <p><strong>Status:</strong> <span style="color: orange;">UNSTABLE ⚠️</span></p>
+                        <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                        <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                        <hr>
+                        <h3>Build Console Output</h3>
+                        <p>Check the build console for warning details.</p>
+                        <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                        <hr>
+                        <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                    """,
+                    to: "${env.EMAIL_RECIPIENT}",
+                    mimeType: 'text/html',
+                    attachLog: false,
+                    compressLog: false
+                )
+            }
+        }
+        aborted {
+            echo 'Pipeline was aborted! 🛑'
+            script {
+                // Send email notification on abort
+                emailext (
+                    subject: "🛑 Jenkins Pipeline ABORTED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                    body: """
+                        <h2>Pipeline Build Aborted</h2>
+                        <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                        <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                        <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                        <p><strong>Status:</strong> <span style="color: gray;">ABORTED 🛑</span></p>
+                        <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                        <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                        <hr>
+                        <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                    """,
+                    to: "${env.EMAIL_RECIPIENT}",
+                    mimeType: 'text/html'
+                )
+            }
         }
     }
 }
