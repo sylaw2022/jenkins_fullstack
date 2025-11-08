@@ -20,6 +20,10 @@ jenkins_fullstack/
 │   ├── src/          # React source files
 │   ├── public/       # Public assets
 │   └── package.json  # Frontend dependencies
+├── postman/          # Postman collection and environments
+│   ├── Jenkins_Fullstack_API.postman_collection.json
+│   ├── Local.postman_environment.json
+│   └── Production.postman_environment.json
 ├── Jenkinsfile       # Jenkins CI/CD pipeline
 ├── render.yaml       # Render.com configuration
 └── README.md         # This file
@@ -158,6 +162,58 @@ Make sure to set `REACT_APP_API_URL` in the frontend service to point to your ba
 - `GET /api/message` - Get a message from the backend
 - `POST /api/data` - Submit data to the backend
   - Body: `{ "name": "string", "message": "string" }`
+
+## 🧪 Testing with Postman
+
+### Import Postman Collection
+
+A Postman collection is included in the `postman/` directory for easy API testing.
+
+#### Steps to Import:
+
+1. **Open Postman** (Desktop app or web version)
+
+2. **Import Collection**:
+   - Click "Import" button
+   - Select `postman/Jenkins_Fullstack_API.postman_collection.json`
+   - The collection will be imported with all API endpoints
+
+3. **Import Environments** (Optional but recommended):
+   - Import `postman/Local.postman_environment.json` for local testing
+   - Import `postman/Production.postman_environment.json` for production testing
+   - Select the appropriate environment from the environment dropdown
+
+4. **Start Backend Server**:
+   ```bash
+   cd backend
+   npm start
+   ```
+
+5. **Run Requests**:
+   - Select the "Local" environment (or update `base_url` variable)
+   - Run any request from the collection
+   - View responses and test results
+
+### Postman Collection Contents
+
+The collection includes:
+- ✅ **Health Check** - Tests `/api/health` endpoint with assertions
+- ✅ **Get Message** - Tests `/api/message` endpoint
+- ✅ **Submit Data** - Tests `/api/data` POST endpoint with sample data
+- ✅ **Submit Data (Minimal)** - Tests `/api/data` with empty body (default values)
+
+All requests include automated tests that verify:
+- HTTP status codes
+- Response structure
+- Required fields
+- Data validation
+
+### Environment Variables
+
+- **Local**: `base_url = http://localhost:5000`
+- **Production**: `base_url = https://jenkins-fullstack-backend.onrender.com`
+
+You can create custom environments or modify the existing ones to match your deployment URLs.
 
 ## 🧪 Testing
 
