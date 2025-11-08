@@ -469,7 +469,29 @@ The Jenkins pipeline includes a SonarQube analysis stage that runs automatically
 - The SonarQube analysis stage runs **after** the Build stage
 - Analysis is **optional** - pipeline continues even if SonarQube is not configured
 - Results are published to SonarQube dashboard
+- **Quality Gate Check**: Pipeline waits for quality gate results and fails if quality gate fails
+- **Email Notifications**: Specific emails are sent when SonarQube quality gate fails or detects errors/warnings
 - Quality gates can be configured in SonarQube to fail builds on quality issues
+
+#### SonarQube Quality Gate Email Notifications
+
+The pipeline automatically sends email alerts to **groklord@yahoo.com** when:
+
+- **⚠️ Quality Gate Fails**: When SonarQube quality gate status is not "OK"
+  - Includes quality gate status (ERROR, WARN, etc.)
+  - Direct link to SonarQube dashboard
+  - Common issues checklist (coverage, smells, vulnerabilities, bugs, duplications)
+  - Build is marked as UNSTABLE or FAILED based on severity
+
+- **❌ Quality Gate Check Error**: When unable to check quality gate status
+  - Connection issues
+  - Configuration problems
+  - SonarQube server unavailable
+
+**Note**: Quality gate statuses:
+- **OK**: All quality gate conditions passed ✅
+- **WARN**: Some conditions failed (build marked as UNSTABLE) ⚠️
+- **ERROR**: Critical conditions failed (build FAILED) ❌
 
 ### SonarQube Configuration Files
 

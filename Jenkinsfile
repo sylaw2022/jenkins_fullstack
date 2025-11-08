@@ -285,6 +285,107 @@ pipeline {
             }
         }
         
+        stage('SonarQube Quality Gate') {
+            when {
+                // Only run if SonarQube analysis was executed
+                anyOf {
+                    expression { env.SONAR_HOST_URL != null }
+                    expression { env.SONAR_TOKEN != null }
+                }
+            }
+            steps {
+                script {
+                    try {
+                        // Wait for SonarQube quality gate and fail build if quality gate fails
+                        def qg = waitForQualityGate()
+                        
+                        if (qg.status != 'OK') {
+                            // Quality gate failed - mark build as unstable or failed
+                            echo "⚠️ SonarQube Quality Gate Status: ${qg.status}"
+                            echo "📊 Quality Gate Details:"
+                            echo "   - Status: ${qg.status}"
+                            
+                            // Get quality gate details from SonarQube
+                            def sonarUrl = env.SONAR_HOST_URL ?: 'http://localhost:9000'
+                            def projectKey = 'jenkins-fullstack'
+                            
+                            // Send specific email for SonarQube quality gate failure
+                            emailext (
+                                subject: "⚠️ SonarQube Quality Gate FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                                body: """
+                                    <h2>SonarQube Quality Gate Failed</h2>
+                                    <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                    <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                    <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                    <p><strong>Quality Gate Status:</strong> <span style="color: red;">${qg.status} ⚠️</span></p>
+                                    <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                    <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                    <hr>
+                                    <h3>SonarQube Dashboard</h3>
+                                    <p>View detailed quality gate results in SonarQube:</p>
+                                    <p><a href="${sonarUrl}/dashboard?id=${projectKey}">${sonarUrl}/dashboard?id=${projectKey}</a></p>
+                                    <hr>
+                                    <h3>Common Quality Gate Issues</h3>
+                                    <ul>
+                                        <li><strong>Code Coverage:</strong> Test coverage below threshold</li>
+                                        <li><strong>Code Smells:</strong> Too many code smells detected</li>
+                                        <li><strong>Security Vulnerabilities:</strong> Security issues found</li>
+                                        <li><strong>Bugs:</strong> Potential bugs detected</li>
+                                        <li><strong>Duplications:</strong> Code duplication above threshold</li>
+                                    </ul>
+                                    <p>Check the SonarQube dashboard for specific issues and remediation steps.</p>
+                                    <hr>
+                                    <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                                """,
+                                to: "${env.EMAIL_RECIPIENT}",
+                                mimeType: 'text/html'
+                            )
+                            
+                            // Mark build as unstable (or fail it)
+                            if (qg.status == 'ERROR') {
+                                error("❌ SonarQube Quality Gate FAILED with status: ${qg.status}")
+                            } else {
+                                // WARN or other non-OK status
+                                currentBuild.result = 'UNSTABLE'
+                                echo "⚠️ Build marked as UNSTABLE due to SonarQube quality gate: ${qg.status}"
+                            }
+                        } else {
+                            echo "✅ SonarQube Quality Gate PASSED: ${qg.status}"
+                        }
+                    } catch (Exception e) {
+                        echo "❌ Error checking SonarQube quality gate: ${e.getMessage()}"
+                        // Send email about quality gate check failure
+                        emailext (
+                            subject: "❌ SonarQube Quality Gate Check FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                            body: """
+                                <h2>SonarQube Quality Gate Check Error</h2>
+                                <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                <p><strong>Error:</strong> <span style="color: red;">Failed to check SonarQube quality gate</span></p>
+                                <p><strong>Error Message:</strong> ${e.getMessage()}</p>
+                                <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                <hr>
+                                <p>Please check:</p>
+                                <ul>
+                                    <li>SonarQube server is accessible</li>
+                                    <li>SonarQube project exists</li>
+                                    <li>Quality gate is configured</li>
+                                    <li>Jenkins SonarQube plugin is properly configured</li>
+                                </ul>
+                                <hr>
+                                <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                            """,
+                            to: "${env.EMAIL_RECIPIENT}",
+                            mimeType: 'text/html'
+                        )
+                        throw e
+                    }
+                }
+            }
+        }
+        
         stage('Archive Artifacts') {
             steps {
                 echo 'Archiving build artifacts...'
