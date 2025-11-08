@@ -112,15 +112,31 @@ git pull origin main
 The Jenkins pipeline includes:
 - **Checkout**: Clones the repository
 - **Install Dependencies**: Installs npm packages for both backend and frontend
-- **Test**: Runs tests (if available)
+- **Test**: Runs unit tests (if available)
 - **Build**: Builds the frontend application
+- **API Tests (Postman)**: Runs Postman/Newman API integration tests against the backend
 - **SonarQube Analysis**: Analyzes code quality and security (optional)
-- **Archive Artifacts**: Saves build artifacts
+- **Archive Artifacts**: Saves build artifacts and test results
 
 ### 3. Run Pipeline
 
 - Click "Build Now" to trigger the pipeline
 - View progress in the "Build History"
+
+### 4. API Testing in Pipeline
+
+The pipeline automatically:
+- Starts the backend server
+- Waits for it to be ready (health check)
+- Runs all Postman API tests using Newman
+- Stops the server after tests complete
+- Archives test results (JSON format)
+- Fails the build if any API tests fail
+
+**Note**: The API Tests stage requires:
+- Backend server to start successfully
+- Port 5000 to be available
+- Newman installed (automatically installed via npm)
 
 ## 🌐 Render.com Deployment
 

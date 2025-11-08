@@ -37,6 +37,8 @@ Thumbs.db
 coverage/
 .nyc_output/
 postman-test-results.json
+backend-server.log
+backend-server.pid
 
 # SonarQube
 .sonarqube.env
