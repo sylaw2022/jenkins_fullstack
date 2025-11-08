@@ -157,6 +157,109 @@ pipeline {
             }
         }
         
+        stage('Frontend E2E Tests (Cypress)') {
+            when {
+                // Only run if frontend build succeeded
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                script {
+                    // Install frontend dependencies (including Cypress)
+                    dir("${env.FRONTEND_DIR}") {
+                        sh 'npm install'
+                    }
+                    
+                    // Start frontend server in background
+                    echo '🚀 Starting frontend server...'
+                    dir("${env.FRONTEND_DIR}") {
+                        sh '''
+                            nohup npm start > ../frontend-server.log 2>&1 &
+                            echo $! > ../frontend-server.pid
+                        '''
+                    }
+                    
+                    // Wait for frontend server to be ready
+                    echo '⏳ Waiting for frontend server to start...'
+                    def maxAttempts = 60 // Frontend takes longer to start
+                    def attempt = 0
+                    def serverReady = false
+                    
+                    while (attempt < maxAttempts && !serverReady) {
+                        sleep(time: 5, unit: 'SECONDS')
+                        def response = sh(
+                            script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 || echo "000"',
+                            returnStdout: true
+                        ).trim()
+                        
+                        if (response == '200') {
+                            serverReady = true
+                            echo '✅ Frontend server is ready!'
+                        } else {
+                            attempt++
+                            echo "⏳ Attempt ${attempt}/${maxAttempts} - Frontend server not ready yet..."
+                        }
+                    }
+                    
+                    if (!serverReady) {
+                        error('❌ Frontend server failed to start within timeout period')
+                    }
+                    
+                    // Ensure backend is still running for E2E tests
+                    echo '🔍 Checking backend server...'
+                    def backendResponse = sh(
+                        script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/api/health || echo "000"',
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (backendResponse != '200') {
+                        echo '⚠️ Backend server not running. Starting backend for E2E tests...'
+                        dir("${env.BACKEND_DIR}") {
+                            sh '''
+                                nohup node server.js > ../backend-server-e2e.log 2>&1 &
+                                echo $! > ../backend-server-e2e.pid
+                            '''
+                        }
+                        sleep(time: 5, unit: 'SECONDS')
+                    }
+                    
+                    // Run Cypress E2E tests
+                    echo '🧪 Running Cypress E2E tests...'
+                    try {
+                        dir("${env.FRONTEND_DIR}") {
+                            sh '''
+                                npx cypress run --config video=true,screenshotOnRunFailure=true || true
+                            '''
+                        }
+                        echo '✅ Cypress E2E tests completed!'
+                    } catch (Exception e) {
+                        echo '❌ Cypress E2E tests failed!'
+                        throw e
+                    } finally {
+                        // Stop frontend server
+                        echo '🛑 Stopping frontend server...'
+                        sh '''
+                            if [ -f frontend-server.pid ]; then
+                                kill $(cat frontend-server.pid) 2>/dev/null || true
+                                rm -f frontend-server.pid
+                            fi
+                            pkill -f "react-scripts start" || true
+                        '''
+                        
+                        // Stop backend if we started it
+                        sh '''
+                            if [ -f backend-server-e2e.pid ]; then
+                                kill $(cat backend-server-e2e.pid) 2>/dev/null || true
+                                rm -f backend-server-e2e.pid
+                            fi
+                        '''
+                        
+                        // Archive Cypress artifacts
+                        archiveArtifacts artifacts: "${env.FRONTEND_DIR}/cypress/videos/**/*,${env.FRONTEND_DIR}/cypress/screenshots/**/*", allowEmptyArchive: true
+                    }
+                }
+            }
+        }
+        
         stage('SonarQube Analysis') {
             when {
                 // Only run if SonarQube is configured

@@ -7,6 +7,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
+    "test:component": "cypress run --component",
+    "test:all": "npm test -- --watchAll=false && npm run test:e2e",
     "eject": "react-scripts eject"
   },
   "dependencies": {
@@ -18,7 +22,8 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.1.2",
-    "@testing-library/user-event": "^14.5.1"
+    "@testing-library/user-event": "^14.5.1",
+    "cypress": "^13.6.0"
   },
   "eslintConfig": {
     "extends": [

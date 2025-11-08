@@ -19,6 +19,10 @@ jenkins_fullstack/
 ├── frontend/         # React application
 │   ├── src/          # React source files
 │   ├── public/       # Public assets
+│   ├── cypress/      # Cypress E2E tests
+│   │   ├── e2e/      # End-to-end tests
+│   │   ├── component/ # Component tests
+│   │   └── support/  # Cypress support files
 │   └── package.json  # Frontend dependencies
 ├── postman/          # Postman collection and environments
 │   ├── Jenkins_Fullstack_API.postman_collection.json
@@ -115,6 +119,7 @@ The Jenkins pipeline includes:
 - **Test**: Runs unit tests (if available)
 - **Build**: Builds the frontend application
 - **API Tests (Postman)**: Runs Postman/Newman API integration tests against the backend
+- **Frontend E2E Tests (Cypress)**: Runs Cypress end-to-end tests for the React frontend
 - **SonarQube Analysis**: Analyzes code quality and security (optional)
 - **Archive Artifacts**: Saves build artifacts and test results
 
@@ -294,10 +299,82 @@ npm test
 
 ### Frontend Tests
 
+#### Unit/Component Tests (Jest + React Testing Library)
+
 ```bash
 cd frontend
 npm test
 ```
+
+#### E2E Tests (Cypress)
+
+**Cypress** is recommended for end-to-end testing of the React frontend.
+
+##### Running Cypress Tests Locally
+
+1. **Install dependencies** (if not already done):
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. **Start the application**:
+   ```bash
+   # Terminal 1: Start backend
+   cd backend
+   npm start
+   
+   # Terminal 2: Start frontend
+   cd frontend
+   npm start
+   ```
+
+3. **Run Cypress tests**:
+   ```bash
+   # Run E2E tests in headless mode
+   npm run test:e2e
+   
+   # Open Cypress Test Runner (interactive)
+   npm run test:e2e:open
+   
+   # Run component tests
+   npm run test:component
+   
+   # Run all tests (Jest + Cypress)
+   npm run test:all
+   ```
+
+##### Cypress Test Structure
+
+- **E2E Tests**: `cypress/e2e/` - Full application testing
+- **Component Tests**: `cypress/component/` - Isolated component testing
+- **Support Files**: `cypress/support/` - Custom commands and configuration
+
+##### Available Test Scripts
+
+- `npm run test:e2e` - Run E2E tests in headless mode
+- `npm run test:e2e:open` - Open Cypress Test Runner GUI
+- `npm run test:component` - Run component tests
+- `npm run test:all` - Run both Jest and Cypress tests
+
+##### Cypress Features
+
+- ✅ **E2E Testing**: Full user flow testing
+- ✅ **Component Testing**: Isolated React component testing
+- ✅ **Visual Testing**: Automatic screenshots and videos
+- ✅ **Time Travel**: Debug tests with time-travel debugging
+- ✅ **Real Browser**: Tests run in real Chrome/Firefox/Edge
+- ✅ **CI/CD Ready**: Works seamlessly in Jenkins pipeline
+
+##### Cypress in Jenkins Pipeline
+
+The Jenkins pipeline automatically:
+- Starts frontend and backend servers
+- Runs Cypress E2E tests
+- Archives test videos and screenshots
+- Handles server cleanup
+
+Test artifacts (videos/screenshots) are automatically archived in Jenkins for failed tests.
 
 ## 📝 Environment Variables
 

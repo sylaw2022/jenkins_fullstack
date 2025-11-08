@@ -40,6 +40,11 @@ postman-test-results.json
 backend-server.log
 backend-server.pid
 
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
 # SonarQube
 .sonarqube.env
 .sonar/
