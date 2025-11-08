@@ -1,0 +1,12 @@
+{
+  "name": "jenkins-fullstack",
+  "version": "1.0.0",
+  "description": "Fullstack application with Jenkins CI/CD and Render.com support",
+  "scripts": {
+    "test:api": "newman run postman/Jenkins_Fullstack_API.postman_collection.json -e postman/Local.postman_environment.json --reporters cli,json --reporter-json-export postman-test-results.json",
+    "test:api:prod": "newman run postman/Jenkins_Fullstack_API.postman_collection.json -e postman/Production.postman_environment.json --reporters cli,json --reporter-json-export postman-test-results.json"
+  },
+  "devDependencies": {
+    "newman": "^6.2.1"
+  }
+}
