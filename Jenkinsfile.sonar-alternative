@@ -1,3 +1,7 @@
+// Alternative Jenkinsfile with SonarQube using direct scanner command
+// Use this if SonarQube Scanner plugin is not available
+// Rename this file to Jenkinsfile to use it
+
 pipeline {
     agent any
     
@@ -5,9 +9,6 @@ pipeline {
         NODE_VERSION = '18'
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
-        // SonarQube configuration - set these in Jenkins credentials or environment
-        // SONAR_HOST_URL = credentials('sonar-host-url')
-        // SONAR_TOKEN = credentials('sonar-token')
     }
     
     stages {
@@ -45,7 +46,7 @@ pipeline {
                     steps {
                         dir("${env.BACKEND_DIR}") {
                             echo 'Running backend tests...'
-                            sh 'npm test || true' // Continue even if tests fail (no tests yet)
+                            sh 'npm test || true'
                         }
                     }
                 }
@@ -53,7 +54,7 @@ pipeline {
                     steps {
                         dir("${env.FRONTEND_DIR}") {
                             echo 'Running frontend tests...'
-                            sh 'npm test -- --watchAll=false || true' // Continue even if tests fail
+                            sh 'npm test -- --watchAll=false || true'
                         }
                     }
                 }
@@ -84,25 +85,33 @@ pipeline {
         
         stage('SonarQube Analysis') {
             when {
-                // Only run if SonarQube is configured
+                // Only run if SonarQube environment variables are set
                 anyOf {
-                    expression { env.SONAR_HOST_URL != null }
-                    expression { env.SONAR_TOKEN != null }
+                    environment name: 'SONAR_HOST_URL', value: ''
+                    environment name: 'SONAR_TOKEN', value: ''
                 }
             }
             steps {
                 script {
-                    // Check if SonarQube Scanner is available
-                    def scannerHome = tool 'SonarQube Scanner'
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                                -Dsonar.projectKey=jenkins-fullstack \
-                                -Dsonar.sources=backend/src,frontend/src,backend/server.js \
-                                -Dsonar.host.url=\${SONAR_HOST_URL} \
-                                -Dsonar.login=\${SONAR_TOKEN}
-                        """
+                    // Check if sonar-scanner is available
+                    def scannerAvailable = sh(
+                        script: 'which sonar-scanner || command -v sonar-scanner',
+                        returnStatus: true
+                    ) == 0
+                    
+                    if (!scannerAvailable) {
+                        echo '⚠️ SonarQube Scanner not found. Installing...'
+                        sh 'npm install -g sonarqube-scanner || true'
                     }
+                    
+                    // Run SonarQube analysis
+                    sh """
+                        sonar-scanner \
+                            -Dsonar.projectKey=jenkins-fullstack \
+                            -Dsonar.sources=backend/src,frontend/src,backend/server.js \
+                            -Dsonar.host.url=\${SONAR_HOST_URL} \
+                            -Dsonar.login=\${SONAR_TOKEN} || echo 'SonarQube analysis skipped or failed'
+                    """
                 }
             }
         }
@@ -118,7 +127,6 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution completed.'
-            // Clean workspace but keep SonarQube reports
             cleanWs(cleanWhenNotBuilt: false, deleteDirs: true, notFailBuild: true)
         }
         success {

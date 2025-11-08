@@ -38,6 +38,11 @@ coverage/
 .nyc_output/
 postman-test-results.json
 
+# SonarQube
+.sonarqube.env
+.sonar/
+.scannerwork/
+
 # Jenkins
 .jenkins/
 
