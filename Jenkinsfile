@@ -47,7 +47,38 @@ pipeline {
                     steps {
                         dir("${env.BACKEND_DIR}") {
                             echo 'Running backend tests...'
-                            sh 'npm test || true' // Continue even if tests fail (no tests yet)
+                            script {
+                                try {
+                                    sh 'npm test -- --watchAll=false --coverage --coverageReporters=text-summary'
+                                    echo '✅ Backend tests passed!'
+                                } catch (Exception e) {
+                                    echo '❌ Backend tests failed!'
+                                    // Send email notification for test failure
+                                    emailext (
+                                        subject: "❌ Backend Tests FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                                        body: """
+                                            <h2>Backend Unit Tests Failed</h2>
+                                            <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                            <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                            <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                            <p><strong>Status:</strong> <span style="color: red;">TESTS FAILED ❌</span></p>
+                                            <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                            <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                            <hr>
+                                            <h3>Test Failure Details</h3>
+                                            <p>Backend unit tests have failed. Please check the build console for detailed error information.</p>
+                                            <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                                            <hr>
+                                            <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                                        """,
+                                        to: "${env.EMAIL_RECIPIENT}",
+                                        mimeType: 'text/html',
+                                        attachLog: true,
+                                        compressLog: true
+                                    )
+                                    throw e
+                                }
+                            }
                         }
                     }
                 }
@@ -55,7 +86,38 @@ pipeline {
                     steps {
                         dir("${env.FRONTEND_DIR}") {
                             echo 'Running frontend tests...'
-                            sh 'npm test -- --watchAll=false || true' // Continue even if tests fail
+                            script {
+                                try {
+                                    sh 'npm test -- --watchAll=false --coverage --coverageReporters=text-summary'
+                                    echo '✅ Frontend tests passed!'
+                                } catch (Exception e) {
+                                    echo '❌ Frontend tests failed!'
+                                    // Send email notification for test failure
+                                    emailext (
+                                        subject: "❌ Frontend Tests FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                                        body: """
+                                            <h2>Frontend Unit Tests Failed</h2>
+                                            <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                            <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                            <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                            <p><strong>Status:</strong> <span style="color: red;">TESTS FAILED ❌</span></p>
+                                            <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                            <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                            <hr>
+                                            <h3>Test Failure Details</h3>
+                                            <p>Frontend unit tests have failed. Please check the build console for detailed error information.</p>
+                                            <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                                            <hr>
+                                            <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                                        """,
+                                        to: "${env.EMAIL_RECIPIENT}",
+                                        mimeType: 'text/html',
+                                        attachLog: true,
+                                        compressLog: true
+                                    )
+                                    throw e
+                                }
+                            }
                         }
                     }
                 }
@@ -68,8 +130,38 @@ pipeline {
                     steps {
                         dir("${env.BACKEND_DIR}") {
                             echo 'Backend build check...'
-                            sh 'node --version'
-                            sh 'npm --version'
+                            script {
+                                try {
+                                    sh 'node --version'
+                                    sh 'npm --version'
+                                    // Validate backend can start (syntax check)
+                                    sh 'node -c server.js || true'
+                                    echo '✅ Backend build check passed!'
+                                } catch (Exception e) {
+                                    echo '❌ Backend build check failed!'
+                                    emailext (
+                                        subject: "❌ Backend Build FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                                        body: """
+                                            <h2>Backend Build Failed</h2>
+                                            <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                            <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                            <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                            <p><strong>Status:</strong> <span style="color: red;">BUILD FAILED ❌</span></p>
+                                            <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                            <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                            <hr>
+                                            <p>Backend build validation failed. Check the console for details.</p>
+                                            <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                                            <hr>
+                                            <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                                        """,
+                                        to: "${env.EMAIL_RECIPIENT}",
+                                        mimeType: 'text/html',
+                                        attachLog: true
+                                    )
+                                    throw e
+                                }
+                            }
                         }
                     }
                 }
@@ -77,7 +169,43 @@ pipeline {
                     steps {
                         dir("${env.FRONTEND_DIR}") {
                             echo 'Building frontend...'
-                            sh 'npm run build'
+                            script {
+                                try {
+                                    sh 'npm run build'
+                                    echo '✅ Frontend build successful!'
+                                } catch (Exception e) {
+                                    echo '❌ Frontend build failed!'
+                                    emailext (
+                                        subject: "❌ Frontend Build FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                                        body: """
+                                            <h2>Frontend Build Failed</h2>
+                                            <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                            <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                            <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                            <p><strong>Status:</strong> <span style="color: red;">BUILD FAILED ❌</span></p>
+                                            <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                            <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                            <hr>
+                                            <h3>Build Failure Details</h3>
+                                            <p>Frontend build failed. Common causes:</p>
+                                            <ul>
+                                                <li>Compilation errors</li>
+                                                <li>Missing dependencies</li>
+                                                <li>TypeScript/ESLint errors</li>
+                                                <li>Build configuration issues</li>
+                                            </ul>
+                                            <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                                            <hr>
+                                            <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                                        """,
+                                        to: "${env.EMAIL_RECIPIENT}",
+                                        mimeType: 'text/html',
+                                        attachLog: true,
+                                        compressLog: true
+                                    )
+                                    throw e
+                                }
+                            }
                         }
                     }
                 }
@@ -139,6 +267,58 @@ pipeline {
                         echo '❌ API tests failed!'
                         // Archive test results even on failure
                         archiveArtifacts artifacts: 'postman-test-results.json', allowEmptyArchive: true
+                        
+                        // Send email notification for API test failure
+                        def testResults = ''
+                        try {
+                            if (fileExists('postman-test-results.json')) {
+                                def resultsFile = readFile('postman-test-results.json')
+                                // Parse JSON manually or use sh to extract stats
+                                def statsMatch = resultsFile =~ /"total":\s*(\d+).*"failed":\s*(\d+).*"total":\s*(\d+).*"failed":\s*(\d+)/
+                                if (statsMatch) {
+                                    testResults = """
+                                        <h3>Test Results Summary</h3>
+                                        <ul>
+                                            <li><strong>Total Requests:</strong> ${statsMatch[0][1]}</li>
+                                            <li><strong>Failed Requests:</strong> ${statsMatch[0][2]}</li>
+                                            <li><strong>Total Assertions:</strong> ${statsMatch[0][3]}</li>
+                                            <li><strong>Failed Assertions:</strong> ${statsMatch[0][4]}</li>
+                                        </ul>
+                                    """
+                                } else {
+                                    testResults = '<p>Test results file found but unable to parse statistics.</p>'
+                                }
+                            } else {
+                                testResults = '<p>Test results file not found.</p>'
+                            }
+                        } catch (Exception readErr) {
+                            testResults = '<p>Unable to parse test results: ' + readErr.getMessage() + '</p>'
+                        }
+                        
+                        emailext (
+                            subject: "❌ API Tests (Postman) FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                            body: """
+                                <h2>API Integration Tests Failed</h2>
+                                <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                <p><strong>Status:</strong> <span style="color: red;">API TESTS FAILED ❌</span></p>
+                                <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                <hr>
+                                ${testResults}
+                                <h3>Test Failure Details</h3>
+                                <p>Postman/Newman API tests have failed. Check the build console and test results for details.</p>
+                                <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                                <p>Test results JSON is available in build artifacts.</p>
+                                <hr>
+                                <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                            """,
+                            to: "${env.EMAIL_RECIPIENT}",
+                            mimeType: 'text/html',
+                            attachLog: true,
+                            compressLog: true
+                        )
                         throw e
                     } finally {
                         // Stop backend server
@@ -227,12 +407,37 @@ pipeline {
                     try {
                         dir("${env.FRONTEND_DIR}") {
                             sh '''
-                                npx cypress run --config video=true,screenshotOnRunFailure=true || true
+                                npx cypress run --config video=true,screenshotOnRunFailure=true
                             '''
                         }
                         echo '✅ Cypress E2E tests completed!'
                     } catch (Exception e) {
                         echo '❌ Cypress E2E tests failed!'
+                        
+                        // Send email notification for Cypress test failure
+                        emailext (
+                            subject: "❌ Frontend E2E Tests (Cypress) FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                            body: """
+                                <h2>Frontend E2E Tests Failed</h2>
+                                <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                                <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                                <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                                <p><strong>Status:</strong> <span style="color: red;">E2E TESTS FAILED ❌</span></p>
+                                <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                                <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                                <hr>
+                                <h3>Test Failure Details</h3>
+                                <p>Cypress end-to-end tests have failed. Test videos and screenshots are available in build artifacts.</p>
+                                <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                                <p><strong>Artifacts:</strong> Check build artifacts for test videos and screenshots.</p>
+                                <hr>
+                                <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                            """,
+                            to: "${env.EMAIL_RECIPIENT}",
+                            mimeType: 'text/html',
+                            attachLog: true,
+                            compressLog: true
+                        )
                         throw e
                     } finally {
                         // Stop frontend server
@@ -407,7 +612,12 @@ pipeline {
         failure {
             echo 'Pipeline failed! ❌'
             script {
-                // Send email notification on failure
+                // Get failed stage information if available
+                def failedStage = env.STAGE_NAME ?: 'Unknown'
+                def failureReason = 'Check console output for details'
+                
+                // Send email notification on failure (only if not already sent by specific stage)
+                // This is a fallback for unexpected failures
                 emailext (
                     subject: "❌ Jenkins Pipeline FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
                     body: """
@@ -416,12 +626,22 @@ pipeline {
                         <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
                         <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                         <p><strong>Status:</strong> <span style="color: red;">FAILED ❌</span></p>
+                        <p><strong>Failed Stage:</strong> ${failedStage}</p>
                         <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
                         <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
                         <hr>
                         <h3>Build Console Output</h3>
                         <p>Check the build console for detailed error information.</p>
                         <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                        <hr>
+                        <h3>Common Failure Points</h3>
+                        <ul>
+                            <li><strong>Unit Tests:</strong> Backend or Frontend test failures</li>
+                            <li><strong>Build:</strong> Compilation or build errors</li>
+                            <li><strong>API Tests:</strong> Postman/Newman test failures</li>
+                            <li><strong>E2E Tests:</strong> Cypress test failures</li>
+                            <li><strong>SonarQube:</strong> Quality gate failures</li>
+                        </ul>
                         <hr>
                         <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                     """,
