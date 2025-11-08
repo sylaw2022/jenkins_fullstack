@@ -58,6 +58,35 @@ npm start
 
 The frontend will run on `http://localhost:3000`
 
+## 📦 Git Repository
+
+This project is configured to use a local Git repository at:
+```
+/home/sylaw/git/repositories/jenkins_fullstack.git
+```
+
+### Repository Setup
+
+The repository has been initialized and configured:
+- **Local Repository**: `/home/sylaw/jenkins_fullstack`
+- **Bare Repository**: `/home/sylaw/git/repositories/jenkins_fullstack.git`
+- **Remote**: `origin` points to the local bare repository
+
+### Working with the Repository
+
+```bash
+# Check repository status
+git status
+
+# Make changes and commit
+git add .
+git commit -m "Your commit message"
+git push origin main
+
+# Pull latest changes
+git pull origin main
+```
+
 ## 🔄 Jenkins CI/CD Setup
 
 ### 1. Create Jenkins Pipeline Job
@@ -68,7 +97,7 @@ The frontend will run on `http://localhost:3000`
 4. Configure the pipeline:
    - **Pipeline Definition**: Pipeline script from SCM
    - **SCM**: Git
-   - **Repository URL**: Your Git repository URL
+   - **Repository URL**: `/home/sylaw/git/repositories/jenkins_fullstack.git` (for local Jenkins)
    - **Script Path**: `Jenkinsfile`
 
 ### 2. Pipeline Stages
