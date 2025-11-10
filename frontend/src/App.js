@@ -43,7 +43,7 @@ function App() {
     <div className="App">
       <div className="container">
         <header className="header">
-          <h1>🚀 Jenkins Fullstack Application</h1>
+          <h1>🚀 GROKLORD Fullstack Application</h1>
           <p>Deployed with Jenkins CI/CD & Render.com</p>
         </header>
 
