@@ -11,19 +11,23 @@ This happens because Cypress needs a display server to run browsers in a headles
 
 ## Solution
 
-### Option 1: Install Xvfb (Recommended)
+### Option 1: Install Xvfb on Jenkins Server (RECOMMENDED - Most Reliable)
 
-Install Xvfb and required dependencies:
+**Run this on your Jenkins server** (where Jenkins is running):
+
+```bash
+# On Jenkins server
+sudo ./scripts/fix-cypress-xvfb-jenkins.sh
+```
+
+Or manually install:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y xvfb x11-utils x11-xserver-utils libx11-dev libxcomposite-dev libxdamage-dev libxext-dev libxfixes-dev libxrandr-dev libxrender-dev libxtst-dev libxss1 libgconf-2-4
+sudo apt-get install -y xvfb x11-utils x11-xserver-utils libx11-dev libxcomposite-dev libxdamage-dev libxext-dev libxfixes-dev libxrandr-dev libxrender-dev libxtst-dev libxss1 libgconf-2-4 libgtk-3-0 libgbm-dev libnss3 libasound2 fonts-liberation libappindicator3-1 xdg-utils
 ```
 
-Or use the provided script:
-```bash
-./scripts/install-xvfb.sh
-```
+**This is the most reliable fix** - once Xvfb is installed on the Jenkins server, the error will be gone.
 
 ### Option 2: Use Cypress Headless Mode (No Xvfb Required)
 
