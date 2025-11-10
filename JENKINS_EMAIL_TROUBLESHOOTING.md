@@ -22,6 +22,10 @@ The error message will tell you what's wrong:
 - **Problem**: Wrong SSL/TLS configuration
 - **Solution**: See [SSL/TLS Issues](#ssltls-issues) below
 
+### "550 Request failed; Mailbox unavailable" or "550 Mailbox unavailable"
+- **Problem**: From address doesn't match authenticated account
+- **Solution**: See [550 Mailbox Unavailable Error](#550-mailbox-unavailable-error) below
+
 ### "Test email sent successfully" but no email received
 - **Problem**: Email delivery issue
 - **Solution**: See [Email Delivery Issues](#email-delivery-issues) below
@@ -157,6 +161,57 @@ The error message will tell you what's wrong:
 3. **Test Both Configurations:**
    - Try port 587 with TLS first
    - If that fails, try port 465 with SSL
+
+---
+
+## 550 Mailbox Unavailable Error
+
+### Problem: "550 Request failed; Mailbox unavailable" or "550 Mailbox unavailable"
+
+This error occurs when Yahoo SMTP rejects the email because:
+1. **From address doesn't match authenticated account**
+   - The "From" address must match the authenticated Yahoo account
+   - Yahoo validates that you can only send from your own account
+
+2. **Missing or incorrect From/Reply-To configuration**
+   - Jenkins may be using a default "From" address that doesn't match
+   - The Reply-To address may be missing or incorrect
+
+**Fix Steps:**
+
+1. **Verify Jenkins SMTP Configuration:**
+   ```
+   - Go to: Manage Jenkins → Configure System
+   - Scroll to "Extended E-mail Notification"
+   - Verify "Reply To List" is set to: groklord@yahoo.com
+   - Verify "Default user e-mail suffix" is: @yahoo.com
+   ```
+
+2. **The Jenkinsfile has been updated** to explicitly set `from` and `replyTo`:
+   ```groovy
+   environment {
+       EMAIL_FROM = 'groklord@yahoo.com'
+       EMAIL_REPLY_TO = 'groklord@yahoo.com'
+   }
+   
+   emailext (
+       from: "${env.EMAIL_FROM}",
+       replyTo: "${env.EMAIL_REPLY_TO}",
+       to: "${env.EMAIL_RECIPIENT}",
+       // ... other settings
+   )
+   ```
+
+3. **Verify Yahoo Account:**
+   - Make sure `groklord@yahoo.com` is a valid, active Yahoo account
+   - Check that the account is not locked or suspended
+   - Verify you can log in to the Yahoo account normally
+
+4. **Test Configuration:**
+   - After updating, test the email configuration again
+   - The "From" address should now match the authenticated account
+
+**Important**: The `from` address MUST match the username used for SMTP authentication (`groklord@yahoo.com`).
 
 ---
 
