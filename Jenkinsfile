@@ -467,19 +467,32 @@ pipeline {
                                 echo "Checking backend server..."
                                 curl -f http://localhost:5000/api/health > /dev/null 2>&1 || (echo "Backend not accessible" && exit 1)
                                 
-                                # Run Cypress in headless mode without Xvfb
-                                # Set environment variables to prevent Xvfb spawn
+                                # Run Cypress in headless mode
+                                # Set environment variables for headless execution
                                 export DISPLAY=:99
-                                export ELECTRON_RUN_AS_NODE=1
-                                export CYPRESS_RUN_BINARY=1
                                 
-                                # Use Cypress headless mode (doesn't require Xvfb)
-                                # The --headless flag tells Cypress to run without display
-                                echo "Running Cypress in headless mode (no Xvfb required)..."
-                                npx cypress run --e2e \
-                                    --headless \
-                                    --browser electron \
-                                    --config video=true,screenshotOnRunFailure=true,headless=true
+                                # Try to use Xvfb if available, otherwise use pure headless
+                                if command -v Xvfb > /dev/null 2>&1; then
+                                    echo "Starting Xvfb for headless display..."
+                                    Xvfb :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+                                    XVFB_PID=$!
+                                    sleep 3
+                                    
+                                    # Run Cypress with Xvfb
+                                    npx cypress run --e2e \
+                                        --browser electron \
+                                        --config video=true,screenshotOnRunFailure=true
+                                    
+                                    # Cleanup Xvfb
+                                    kill $XVFB_PID 2>/dev/null || true
+                                else
+                                    echo "Xvfb not found, using Cypress headless mode..."
+                                    # Run Cypress in headless mode (doesn't require Xvfb)
+                                    npx cypress run --e2e \
+                                        --headless \
+                                        --browser electron \
+                                        --config video=true,screenshotOnRunFailure=true
+                                fi
                             '''
                         }
                         echo '✅ Cypress E2E tests completed!'
