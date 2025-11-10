@@ -29,5 +29,8 @@ module.exports = defineConfig({
       bundler: 'webpack',
     },
   },
+  // Prevent Cypress from trying to spawn Xvfb
+  // Use headless mode explicitly
+  headless: true,
 })
 
