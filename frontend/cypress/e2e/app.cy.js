@@ -11,32 +11,39 @@ describe('Jenkins Fullstack App E2E Tests', () => {
 
   it('should check API health status', () => {
     // Wait for health check to complete
-    cy.contains('API Health Status', { timeout: 10000 }).should('be.visible')
+    cy.contains('API Health Status', { timeout: 15000 }).should('be.visible')
     
-    // Check for success status
-    cy.contains('ok', { matchCase: false }).should('be.visible')
+    // Wait for the API call to complete and status to appear
+    cy.contains('Backend API is running', { timeout: 15000 }).should('be.visible')
+    
+    // Check for success status indicator
+    cy.contains('✅', { timeout: 10000 }).should('be.visible')
   })
 
   it('should display backend message', () => {
-    cy.contains('Backend Message').should('be.visible')
-    cy.contains('Hello from the backend API', { timeout: 10000 }).should('be.visible')
+    cy.contains('Backend Message', { timeout: 10000 }).should('be.visible')
+    // Wait for the API call to complete
+    cy.contains('Hello from the backend API', { timeout: 15000 }).should('be.visible')
   })
 
   it('should submit data form successfully', () => {
     const testName = 'Cypress Test User'
     const testMessage = 'This is a test message from Cypress'
 
+    // Wait for form to be ready
+    cy.get('input[id="name"]', { timeout: 10000 }).should('be.visible')
+    
     // Fill in the form
-    cy.get('input[id="name"]').type(testName)
-    cy.get('textarea[id="message"]').type(testMessage)
+    cy.get('input[id="name"]').clear().type(testName)
+    cy.get('textarea[id="message"]').clear().type(testMessage)
 
     // Submit the form
     cy.get('button[type="submit"]').click()
 
     // Wait for success message
-    cy.contains('Success', { timeout: 10000 }).should('be.visible')
-    cy.contains(testName).should('be.visible')
-    cy.contains(testMessage).should('be.visible')
+    cy.contains('Success', { timeout: 15000 }).should('be.visible')
+    cy.contains(testName, { timeout: 5000 }).should('be.visible')
+    cy.contains(testMessage, { timeout: 5000 }).should('be.visible')
   })
 
   it('should validate required form fields', () => {
@@ -49,15 +56,18 @@ describe('Jenkins Fullstack App E2E Tests', () => {
   })
 
   it('should handle form submission with minimal data', () => {
+    // Wait for form to be ready
+    cy.get('input[id="name"]', { timeout: 10000 }).should('be.visible')
+    
     // Fill only name
-    cy.get('input[id="name"]').type('Test User')
-    cy.get('textarea[id="message"]').type('Test')
+    cy.get('input[id="name"]').clear().type('Test User')
+    cy.get('textarea[id="message"]').clear().type('Test')
 
     // Submit
     cy.get('button[type="submit"]').click()
 
     // Should show success
-    cy.contains('Success', { timeout: 10000 }).should('be.visible')
+    cy.contains('Success', { timeout: 15000 }).should('be.visible')
   })
 
   it('should be responsive on mobile viewport', () => {

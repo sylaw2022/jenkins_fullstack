@@ -379,7 +379,7 @@ pipeline {
                     echo '🚀 Starting frontend server...'
                     dir("${env.FRONTEND_DIR}") {
                         sh '''
-                            BROWSER=none PORT=3000 nohup npm start > ../frontend-server.log 2>&1 &
+                            BROWSER=none PORT=3000 REACT_APP_API_URL=http://localhost:5000 nohup npm start > ../frontend-server.log 2>&1 &
                             echo $! > ../frontend-server.pid
                         '''
                     }
