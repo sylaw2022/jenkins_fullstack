@@ -379,7 +379,7 @@ pipeline {
                     echo '🚀 Starting frontend server...'
                     dir("${env.FRONTEND_DIR}") {
                         sh '''
-                            nohup npm start > ../frontend-server.log 2>&1 &
+                            BROWSER=none PORT=3000 nohup npm start > ../frontend-server.log 2>&1 &
                             echo $! > ../frontend-server.pid
                         '''
                     }
@@ -410,7 +410,7 @@ pipeline {
                         error('❌ Frontend server failed to start within timeout period')
                     }
                     
-                    // Ensure backend is still running for E2E tests
+                    // Ensure backend is running for E2E tests
                     echo '🔍 Checking backend server...'
                     def backendResponse = sh(
                         script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/api/health || echo "000"',
@@ -421,11 +421,34 @@ pipeline {
                         echo '⚠️ Backend server not running. Starting backend for E2E tests...'
                         dir("${env.BACKEND_DIR}") {
                             sh '''
-                                nohup node server.js > ../backend-server-e2e.log 2>&1 &
+                                PORT=5000 nohup node server.js > ../backend-server-e2e.log 2>&1 &
                                 echo $! > ../backend-server-e2e.pid
                             '''
                         }
-                        sleep(time: 5, unit: 'SECONDS')
+                        
+                        // Wait for backend to be ready
+                        def backendAttempts = 0
+                        def backendReady = false
+                        while (backendAttempts < 30 && !backendReady) {
+                            sleep(time: 2, unit: 'SECONDS')
+                            def healthCheck = sh(
+                                script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/api/health || echo "000"',
+                                returnStdout: true
+                            ).trim()
+                            if (healthCheck == '200') {
+                                backendReady = true
+                                echo '✅ Backend server is ready!'
+                            } else {
+                                backendAttempts++
+                                echo "⏳ Backend attempt ${backendAttempts}/30..."
+                            }
+                        }
+                        
+                        if (!backendReady) {
+                            error('❌ Backend server failed to start for E2E tests')
+                        }
+                    } else {
+                        echo '✅ Backend server is already running!'
                     }
                     
                     // Run Cypress E2E tests
@@ -433,7 +456,21 @@ pipeline {
                     try {
                         dir("${env.FRONTEND_DIR}") {
                             sh '''
-                                npx cypress run --config video=true,screenshotOnRunFailure=true
+                                # Set environment variables
+                                export REACT_APP_API_URL=http://localhost:5000
+                                export CYPRESS_baseUrl=http://localhost:3000
+                                
+                                # Verify servers are running
+                                echo "Checking frontend server..."
+                                curl -f http://localhost:3000 > /dev/null 2>&1 || (echo "Frontend not accessible" && exit 1)
+                                
+                                echo "Checking backend server..."
+                                curl -f http://localhost:5000/api/health > /dev/null 2>&1 || (echo "Backend not accessible" && exit 1)
+                                
+                                # Run Cypress E2E tests
+                                npx cypress run --e2e \
+                                    --config video=true,screenshotOnRunFailure=true \
+                                    --browser electron
                             '''
                         }
                         echo '✅ Cypress E2E tests completed!'

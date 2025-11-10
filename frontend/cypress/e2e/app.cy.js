@@ -5,7 +5,7 @@ describe('Jenkins Fullstack App E2E Tests', () => {
   })
 
   it('should display the main header', () => {
-    cy.contains('h1', 'Jenkins Fullstack Application').should('be.visible')
+    cy.contains('h1', 'GROKLORD Fullstack Application').should('be.visible')
     cy.contains('p', 'Deployed with Jenkins CI/CD & Render.com').should('be.visible')
   })
 
@@ -62,7 +62,7 @@ describe('Jenkins Fullstack App E2E Tests', () => {
 
   it('should be responsive on mobile viewport', () => {
     cy.viewport('iphone-x')
-    cy.contains('Jenkins Fullstack Application').should('be.visible')
+    cy.contains('GROKLORD Fullstack Application').should('be.visible')
     cy.get('input[id="name"]').should('be.visible')
   })
 })
