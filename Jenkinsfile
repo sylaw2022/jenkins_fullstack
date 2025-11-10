@@ -5,8 +5,10 @@ pipeline {
         NODE_VERSION = '18'
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
-        // Email notification recipient
+        // Email notification configuration
         EMAIL_RECIPIENT = 'groklord@yahoo.com'
+        EMAIL_FROM = 'groklord@yahoo.com'
+        EMAIL_REPLY_TO = 'groklord@yahoo.com'
         // SonarQube configuration - set these in Jenkins credentials or environment
         // SONAR_HOST_URL = credentials('sonar-host-url')
         // SONAR_TOKEN = credentials('sonar-token')
@@ -85,6 +87,8 @@ pipeline {
                                             <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                                         """,
                                         to: "${env.EMAIL_RECIPIENT}",
+                                        from: "${env.EMAIL_FROM}",
+                                        replyTo: "${env.EMAIL_REPLY_TO}",
                                         mimeType: 'text/html',
                                         attachLog: true,
                                         compressLog: true
@@ -137,6 +141,8 @@ pipeline {
                                             <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                                         """,
                                         to: "${env.EMAIL_RECIPIENT}",
+                                        from: "${env.EMAIL_FROM}",
+                                        replyTo: "${env.EMAIL_REPLY_TO}",
                                         mimeType: 'text/html',
                                         attachLog: true,
                                         compressLog: true
@@ -225,6 +231,8 @@ pipeline {
                                             <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                                         """,
                                         to: "${env.EMAIL_RECIPIENT}",
+                                        from: "${env.EMAIL_FROM}",
+                                        replyTo: "${env.EMAIL_REPLY_TO}",
                                         mimeType: 'text/html',
                                         attachLog: true,
                                         compressLog: true
