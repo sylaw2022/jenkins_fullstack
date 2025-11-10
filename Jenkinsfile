@@ -467,10 +467,29 @@ pipeline {
                                 echo "Checking backend server..."
                                 curl -f http://localhost:5000/api/health > /dev/null 2>&1 || (echo "Backend not accessible" && exit 1)
                                 
-                                # Run Cypress E2E tests
-                                npx cypress run --e2e \
-                                    --config video=true,screenshotOnRunFailure=true \
-                                    --browser electron
+                                # Check if Xvfb is available, if not use Cypress headless mode
+                                if command -v Xvfb > /dev/null 2>&1; then
+                                    echo "Starting Xvfb for headless display..."
+                                    export DISPLAY=:99
+                                    Xvfb :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+                                    XVFB_PID=$!
+                                    sleep 2
+                                    
+                                    # Run Cypress with Xvfb
+                                    npx cypress run --e2e \
+                                        --config video=true,screenshotOnRunFailure=true \
+                                        --browser electron
+                                    
+                                    # Cleanup Xvfb
+                                    kill $XVFB_PID 2>/dev/null || true
+                                else
+                                    echo "Xvfb not found, using Cypress headless mode..."
+                                    # Run Cypress in headless mode (doesn't require Xvfb)
+                                    npx cypress run --e2e \
+                                        --config video=true,screenshotOnRunFailure=true \
+                                        --browser electron \
+                                        --headless
+                                fi
                             '''
                         }
                         echo '✅ Cypress E2E tests completed!'
