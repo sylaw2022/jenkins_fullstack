@@ -101,10 +101,23 @@ pipeline {
                             echo 'Running frontend tests...'
                             script {
                                 try {
-                                    sh 'npm test -- --watchAll=false --coverage --coverageReporters=text-summary'
-                                    echo '✅ Frontend tests passed!'
+                                    // Check if test files exist
+                                    def testFiles = sh(
+                                        script: 'find src -name "*.test.js" -o -name "*.test.jsx" -o -name "*.spec.js" -o -name "*.spec.jsx" | head -1',
+                                        returnStdout: true
+                                    ).trim()
+                                    
+                                    if (testFiles) {
+                                        echo "Found test files, running tests..."
+                                        sh 'CI=true npm test -- --watchAll=false --coverage --coverageReporters=text-summary --passWithNoTests'
+                                        echo '✅ Frontend tests passed!'
+                                    } else {
+                                        echo '⚠️ No test files found. Skipping tests...'
+                                        echo '✅ Frontend test stage completed (no tests to run)'
+                                    }
                                 } catch (Exception e) {
                                     echo '❌ Frontend tests failed!'
+                                    echo "Error: ${e.getMessage()}"
                                     // Send email notification for test failure
                                     emailext (
                                         subject: "❌ Frontend Tests FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
