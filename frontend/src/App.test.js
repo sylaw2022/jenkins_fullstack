@@ -1,11 +1,20 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import axios from 'axios';
-import App from './App';
 
-// Mock axios
-jest.mock('axios');
+// Mock axios before importing App
+const mockGet = jest.fn();
+const mockPost = jest.fn();
+
+jest.mock('axios', () => ({
+  __esModule: true,
+  default: {
+    get: (...args) => mockGet(...args),
+    post: (...args) => mockPost(...args)
+  }
+}));
+
+import App from './App';
 
 describe('App Component', () => {
   beforeEach(() => {
@@ -14,8 +23,8 @@ describe('App Component', () => {
   });
 
   test('renders GROKLORD Fullstack Application title', () => {
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
     
     render(<App />);
     const titleElement = screen.getByText(/GROKLORD Fullstack Application/i);
@@ -23,8 +32,8 @@ describe('App Component', () => {
   });
 
   test('renders deployment information', () => {
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
     
     render(<App />);
     const deploymentText = screen.getByText(/Deployed with Jenkins CI\/CD & Render.com/i);
@@ -32,8 +41,8 @@ describe('App Component', () => {
   });
 
   test('displays API Health Status section', () => {
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
     
     render(<App />);
     const healthSection = screen.getByText(/API Health Status/i);
@@ -41,8 +50,8 @@ describe('App Component', () => {
   });
 
   test('displays Backend Message section', () => {
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
     
     render(<App />);
     const messageSection = screen.getByText(/Backend Message/i);
@@ -50,8 +59,8 @@ describe('App Component', () => {
   });
 
   test('displays Send Data to Backend form', () => {
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
     
     render(<App />);
     const formSection = screen.getByText(/Send Data to Backend/i);
@@ -73,18 +82,20 @@ describe('App Component', () => {
       timestamp: new Date().toISOString()
     };
     
-    axios.get.mockResolvedValueOnce({ data: healthData });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockGet.mockResolvedValueOnce({ data: healthData });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
     
     await act(async () => {
       render(<App />);
     });
     
     await waitFor(() => {
-      expect(screen.getByText(/ok/i)).toBeInTheDocument();
-    });
+      expect(screen.getByText(/Backend API is running/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
     
-    expect(screen.getByText(/Backend API is running/i)).toBeInTheDocument();
+    // Check for status indicator (✅ ok)
+    const statusText = screen.getByText(/✅/i);
+    expect(statusText).toBeInTheDocument();
   });
 
   test('displays backend message when API responds', async () => {
@@ -93,8 +104,8 @@ describe('App Component', () => {
       environment: 'test'
     };
     
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: messageData });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: messageData });
     
     await act(async () => {
       render(<App />);
@@ -106,8 +117,8 @@ describe('App Component', () => {
   });
 
   test('allows user to input name and message', () => {
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
     
     render(<App />);
     
@@ -131,9 +142,9 @@ describe('App Component', () => {
       }
     };
     
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
-    axios.post.mockResolvedValueOnce({ data: submitResponse });
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockPost.mockResolvedValueOnce({ data: submitResponse });
     
     render(<App />);
     
@@ -146,7 +157,7 @@ describe('App Component', () => {
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         expect.stringContaining('/api/data'),
         { name: 'Test User', message: 'Test Message' }
       );
@@ -158,9 +169,9 @@ describe('App Component', () => {
   });
 
   test('handles form submission error', async () => {
-    axios.get.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
-    axios.get.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
-    axios.post.mockRejectedValueOnce(new Error('Network Error'));
+    mockGet.mockResolvedValueOnce({ data: { status: 'ok', message: 'Backend API is running', timestamp: new Date().toISOString() } });
+    mockGet.mockResolvedValueOnce({ data: { message: 'Hello from the backend API!', environment: 'test' } });
+    mockPost.mockRejectedValueOnce(new Error('Network Error'));
     
     render(<App />);
     
@@ -177,4 +188,3 @@ describe('App Component', () => {
     });
   });
 });
-
