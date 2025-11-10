@@ -701,6 +701,44 @@ pipeline {
         }
         success {
             echo 'Pipeline succeeded! ✅'
+            script {
+                // Send email notification on successful build
+                emailext (
+                    subject: "✅ Jenkins Pipeline SUCCESS: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                    body: """
+                        <h2>Pipeline Build Successful!</h2>
+                        <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                        <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                        <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                        <p><strong>Status:</strong> <span style="color: green;">SUCCESS ✅</span></p>
+                        <p><strong>Branch:</strong> ${env.GIT_BRANCH ?: 'N/A'}</p>
+                        <p><strong>Commit:</strong> ${env.GIT_COMMIT ?: 'N/A'}</p>
+                        <hr>
+                        <h3>Build Summary</h3>
+                        <p>All pipeline stages completed successfully:</p>
+                        <ul>
+                            <li>✅ Code Checkout</li>
+                            <li>✅ Dependencies Installed (Backend & Frontend)</li>
+                            <li>✅ Unit Tests Passed (Backend & Frontend)</li>
+                            <li>✅ Build Completed (Backend & Frontend)</li>
+                            <li>✅ API Tests Passed (Postman/Newman)</li>
+                            <li>✅ E2E Tests Passed (Cypress)</li>
+                            <li>✅ SonarQube Analysis Completed</li>
+                            <li>✅ Artifacts Archived</li>
+                        </ul>
+                        <hr>
+                        <h3>Build Details</h3>
+                        <p><a href="${env.BUILD_URL}">View Build Details</a></p>
+                        <p><a href="${env.BUILD_URL}console">View Console Output</a></p>
+                        <hr>
+                        <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
+                    """,
+                    to: "${env.EMAIL_RECIPIENT}",
+                    from: "${env.EMAIL_FROM}",
+                    replyTo: "${env.EMAIL_REPLY_TO}",
+                    mimeType: 'text/html'
+                )
+            }
         }
         failure {
             echo 'Pipeline failed! ❌'
@@ -739,6 +777,8 @@ pipeline {
                         <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                     """,
                     to: "${env.EMAIL_RECIPIENT}",
+                    from: "${env.EMAIL_FROM}",
+                    replyTo: "${env.EMAIL_REPLY_TO}",
                     mimeType: 'text/html',
                     attachLog: true,
                     compressLog: true
@@ -767,6 +807,8 @@ pipeline {
                         <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                     """,
                     to: "${env.EMAIL_RECIPIENT}",
+                    from: "${env.EMAIL_FROM}",
+                    replyTo: "${env.EMAIL_REPLY_TO}",
                     mimeType: 'text/html',
                     attachLog: false,
                     compressLog: false
@@ -791,6 +833,8 @@ pipeline {
                         <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                     """,
                     to: "${env.EMAIL_RECIPIENT}",
+                    from: "${env.EMAIL_FROM}",
+                    replyTo: "${env.EMAIL_REPLY_TO}",
                     mimeType: 'text/html'
                 )
             }
