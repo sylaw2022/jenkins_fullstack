@@ -188,6 +188,8 @@ pipeline {
                                             <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                                         """,
                                         to: "${env.EMAIL_RECIPIENT}",
+                                        from: "${env.EMAIL_FROM}",
+                                        replyTo: "${env.EMAIL_REPLY_TO}",
                                         mimeType: 'text/html',
                                         attachLog: true
                                     )
@@ -349,6 +351,8 @@ pipeline {
                                 <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                             """,
                             to: "${env.EMAIL_RECIPIENT}",
+                            from: "${env.EMAIL_FROM}",
+                            replyTo: "${env.EMAIL_REPLY_TO}",
                             mimeType: 'text/html',
                             attachLog: true,
                             compressLog: true
@@ -527,6 +531,8 @@ pipeline {
                                 <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                             """,
                             to: "${env.EMAIL_RECIPIENT}",
+                            from: "${env.EMAIL_FROM}",
+                            replyTo: "${env.EMAIL_REPLY_TO}",
                             mimeType: 'text/html',
                             attachLog: true,
                             compressLog: true
@@ -636,6 +642,8 @@ pipeline {
                                     <p><em>This is an automated message from Jenkins CI/CD Pipeline.</em></p>
                                 """,
                                 to: "${env.EMAIL_RECIPIENT}",
+                                from: "${env.EMAIL_FROM}",
+                                replyTo: "${env.EMAIL_REPLY_TO}",
                                 mimeType: 'text/html'
                             )
                             
